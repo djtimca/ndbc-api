@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/djtimca/ndbc-api",
-    download_url = 'https://github.com/djtimca/ndbc-api/archive/v_001.tar.gz',
+    download_url = 'https://github.com/djtimca/ndbc-api/archive/refs/tags/0.0.1.tar.gz',
     keywords = ['NDBC', 'Buoy', 'Waves', 'Wind', 'Weather'],
     classifiers=[
         'Development Status :: 3 - Alpha',
