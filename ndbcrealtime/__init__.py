@@ -7,7 +7,6 @@ import xmltodict
 import collections
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
-import pandas as pd
 from datetime import datetime, timezone
 import calendar
 import asyncio
@@ -21,8 +20,17 @@ class NDBC:
     def __init__(
         self, 
         station_id:str,
+        session:aiohttp.ClientSession=None,
     ):
         self._station_id = station_id
+
+        if not session:
+            self._session = aiohttp.ClientSession()
+        else:
+            self._session = session
+
+    async def close(self):
+        await self._session.close()
 
     async def get_data(self):
         """Get the observation data and structure to meet defined spec."""
@@ -156,46 +164,54 @@ class NDBC:
     async def get_json(self):
         """Get the observation data from NOAA and convert to json object."""
         response = {}
+        request_url = f"{OBSERVATION_BASE_URL}{self._station_id}.txt"
+        col_specification = {
+            "YY": (0,4),
+            "MM": (5,7),
+            "DD": (8,10),
+            "hh": (11,13),
+            "mm": (14,16),
+            "WDIR": (17,21),
+            "WSPD": (22,26),
+            "GST": (27,31),
+            "WVHT": (32,38),
+            "DPD": (39,44),
+            "APD": (45,48),
+            "MWD": (49,52),
+            "PRES": (53,60),
+            "ATMP": (61,66),
+            "WTMP": (67,72),
+            "DEWP": (73,78),
+            "VIS": (79,82),
+            "PTDY": (83,88),
+            "TIDE": (89,93)
+        }
 
+        async with await self._session.get(request_url) as resp:
+            response = await resp.text()
+        
         if response is not None:
             try:
-                data =  await asyncio.gather(self.get_dataframe())
-                return data[0]
+                data = response.split("\n")
+                data_json = []
+                
+                for line in data:
+                    if line[0:3] == "#YY":
+                        continue
+                    thisline = {}
+                    for key, colspec in col_specification.items():
+                        thisline[key] = line[colspec[0]:colspec[1]].strip()
+                    
+                    data_json.append(thisline)
+
+                return data_json
             except json.decoder.JSONDecodeError as error:
                 raise ValueError(f"Error decoding data from NDBC ({error}).")
             except Exception as error:
                 raise ValueError(f"Unknown error in NDBC data ({error})")
         else:
             raise ConnectionError("Error getting data from NDBC.")
-    
-    async def get_dataframe(self):
-        request_url = f"{OBSERVATION_BASE_URL}{self._station_id}.txt"
-        col_specification = [
-            (0,4),
-            (5,7),
-            (8,10),
-            (11,13),
-            (14,16),
-            (17,21),
-            (22,26),
-            (27,31),
-            (32,38),
-            (39,44),
-            (45,48),
-            (49,52),
-            (53,60),
-            (61,66),
-            (67,72),
-            (73,78),
-            (79,82),
-            (83,88),
-            (89,93),
-        ]
-
-        data = pd.read_fwf(request_url, colspecs=col_specification)
-        data = data.rename(columns={"#YY":"YY"})
-
-        return json.loads(data.to_json(orient="records"))
+        
 
     def compass_direction(self, degrees:float):
         if degrees > 11.25 and degrees <= 33.75:
