@@ -164,7 +164,7 @@ class NDBC:
     async def get_json(self):
         """Get the observation data from NOAA and convert to json object."""
         response = {}
-        request_url = f"{OBSERVATION_BASE_URL}{self._station_id}.txt"
+        request_url = f"{OBSERVATION_BASE_URL}{self._station_id.upper()}.txt"
         col_specification = {
             "YY": (0,4),
             "MM": (5,7),
@@ -190,7 +190,7 @@ class NDBC:
         async with await self._session.get(request_url) as resp:
             response = await resp.text()
         
-        if response is not None:
+        if response is not None and resp.status != 404:
             try:
                 data = response.split("\n")
                 data_json = []
@@ -209,6 +209,8 @@ class NDBC:
                 raise ValueError(f"Error decoding data from NDBC ({error}).")
             except Exception as error:
                 raise ValueError(f"Unknown error in NDBC data ({error})")
+        elif resp.status == 404:
+            raise ValueError(f"Invalid station ID ({self._station_id})")
         else:
             raise ConnectionError("Error getting data from NDBC.")
         

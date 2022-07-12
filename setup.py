@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="ndbcrealtime", 
     packages=["ndbcrealtime"],
-    version="0.0.3",
+    version="0.0.4",
     license='apache-2.0',
     author="Tim Empringham",
     author_email="tim.empringham@live.ca",
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/djtimca/ndbc-api",
-    download_url = 'https://github.com/djtimca/ndbc-api/archive/refs/tags/0.0.3.tar.gz',
+    download_url = 'https://github.com/djtimca/ndbc-api/archive/refs/tags/0.0.4.tar.gz',
     keywords = ['NDBC', 'Buoy', 'Waves', 'Wind', 'Weather'],
     classifiers=[
         'Development Status :: 3 - Alpha',
