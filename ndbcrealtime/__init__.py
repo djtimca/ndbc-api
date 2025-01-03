@@ -111,7 +111,7 @@ class NDBC:
             observation["waves"]["period"] = int(data[1]["DPD"])
         
         if data[1]["APD"] != "MM":
-            observation["waves"]["average_period"] = int(data[1]["APD"])
+            observation["waves"]["average_period"] = int(round(float(data[1]["APD"])))
         
         if data[1]["MWD"] != "MM":
             observation["waves"]["direction"] = int(data[1]["MWD"])
